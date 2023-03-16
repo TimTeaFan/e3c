@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <title>Embeded Tweet</title>
+  <meta name="description" content="Hiding an embeded Tweet">
+  <meta name="keywords" content="Tweet">
+  <link rel="stylesheet" href="custom.css">
+</head>
+<body>
+  <div>Here goes some text</div>
+  <div class="embeded-content">
+    <p>Here you find content from Twitter that complements this article. You can display it with one click and hide it again.</p>
+    <div style="display:flex;">
+      <label class="switch">
+        <input type="checkbox" id="tweet-toggle">
+        <span class="slider round"></span>
+      </label>
+      <span>Show external content from Twitter</span>
+    </div>
+    <p>I agree to external content being shown here. This may transmit personal data to third-party platforms.</p>
+    <div id="tweet-container" style="display:none;"></div>
+  </div>
+  <div>Here goes some text</div>
+  <script>
+    var tweetToggle = document.getElementById('tweet-toggle');
+    var tweetContainer = document.getElementById('tweet-container');
+
+    tweetToggle.addEventListener('change', function() {
+      if (tweetToggle.checked) {
+        var tweetEmbed = document.createElement('blockquote');
+        tweetEmbed.setAttribute('class', 'twitter-tweet');
+        tweetEmbed.innerHTML = '<a href="https://twitter.com/x/status/1511034067344572422"></a>';
+
+        tweetContainer.appendChild(tweetEmbed);
+
+        window.twttr.widgets.load(tweetContainer);
+
+        tweetContainer.style.display = "block";
+      } else {
+        tweetContainer.innerHTML = '';
+        tweetContainer.style.display = "none";
+      }
+    });
+
+    // Wait for the Twitter widgets.js script to load
+    window.twttr = (function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0],
+        t = window.twttr || {};
+      if (d.getElementById(id)) return t;
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://platform.twitter.com/widgets.js";
+      fjs.parentNode.insertBefore(js, fjs);
+      t._e = [];
+      t.ready = function(f) {
+        t._e.push(f);
+      };
+      return t;
+    }(document, "script", "twitter-wjs"));
+  </script>
+</body>
+</html>

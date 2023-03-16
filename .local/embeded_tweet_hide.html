@@ -1,0 +1,25 @@
+
+<!doctype html>
+<html>
+<head>
+  <title>Embeded Tweet</title>
+  <meta name="description" content="Hiding an embeded Tweet">
+  <meta name="keywords" content="Tweet">
+  <link rel="stylesheet" href="custom.css">
+</head>
+<body>
+  <div>Here goes some text</div>
+  <div class="embeded-content">
+    <p>Here you find content from Twitter that complements this article. You can display it with one click and hide it again.</p>
+    <div style="display:flex;"><label class="switch">
+      <input type="checkbox">
+      <span class="slider round"></span>
+    </label>
+    <span>Show external content from Twitter</span>
+  </div>
+    <p>I agree to external content being shown here. This may transmit personal data to third-party platforms.</p>
+  </div>
+  <div>Here goes some text</div>
+  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</body>
+</html>
