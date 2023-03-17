@@ -4,7 +4,7 @@ class EFrame extends HTMLElement {
   // define CSS style and logic
   static cssAdded = false;
 
-    constructor() {
+    constructor(config = readMetaConfig()) {
       super();
   
       // Create the switch element
@@ -34,7 +34,7 @@ class EFrame extends HTMLElement {
       this.message2.innerText = "I agree to have external content displayed to me. This may result in personal data being shared with third-party platforms.";
  
       // Conditionally add link to privacy policy
-      if (this.getAttribute('policy')) {
+      if (config.policy) {
         this.privacyPolicyLink = document.createElement('a');
         this.privacyPolicyLink.href = this.getAttribute('policy');
         this.privacyPolicyLink.innerText = 'privacy policy';
@@ -46,7 +46,7 @@ class EFrame extends HTMLElement {
  
       // Conditionally display the Twitter icon based on the show attribute
 
-      if (this.getAttribute('show') === 'icon') {
+      if (config.show === 'icon') {
         this.twitterIcon = document.createElement('i');
         this.twitterIcon.setAttribute('class', 'fab fa-twitter');
         this.twitterIcon.style.marginRight = '10px';
@@ -76,21 +76,21 @@ class EFrame extends HTMLElement {
       // Add event listener to the switch
       this.input.addEventListener('change', this.onToggle.bind(this));
   
-      // If CSS is not already adde, append it to the document's head
+      // If CSS is not already added, append it to the document's head
       if (!EFrame.cssAdded) {
-        EFrame.addCSS();
+        EFrame.addCSS(config.show);
         EFrame.cssAdded = true;
-    }
+      }
 
     }
 
-    static addCSS() { 
-      // Check if Font Awesome should be included
-    var add_fontawesome = "";
-    const eframeElement = document.querySelector('e-frame');
-    if (eframeElement && eframeElement.getAttribute('show') === 'icon') {
-      add_fontawesome = "@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css');";
-    }
+    static addCSS(showAttribute) {
+
+      // Check if the font-awesome should be added
+      var add_fontawesome = "";
+      if (showAttribute === 'icon')   {
+        add_fontawesome = "@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css');"
+      }
 
       // Create the CSS styles
       var css = `
@@ -102,16 +102,7 @@ class EFrame extends HTMLElement {
         max-width: 600px;
         width: 100%;
         height: 100%;
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
-  
-    .eframe-container {
-      padding: 0px 20px;
-    }
-  
-    .e3c-switch-container {
-      margin: 10px 0px;
+        padding: 10px 20px 20px 10px;
     }
   
     .e3c-fineprint {
@@ -229,6 +220,18 @@ class EFrame extends HTMLElement {
         }
       }
     }
+
+    // Function to readin the MetaConfig data
+    function readMetaConfig() {
+      const showMetaTag = document.querySelector('meta[name="eframe-show"]');
+      const policyMetaTag = document.querySelector('meta[name="eframe-policy"]');
+    
+      return {
+        show: showMetaTag ? showMetaTag.content : 'icon',
+        policy: policyMetaTag ? policyMetaTag.content : null
+      };
+    }
+    
     
     // Define the custom element tag
     customElements.define('e-frame', EFrame);
