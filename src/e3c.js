@@ -18,14 +18,38 @@ class EFrame extends HTMLElement {
       this.switchWrapper.setAttribute('class', 'e3c-switch-container');
       this.switchWrapper.style.display = 'flex';
       this.switchWrapper.style.alignItems = 'center';
-
-  
+      this.switchLabel = document.createTextNode('Show external content from Twitter');
+     
       // Create the message elements
+      this.heading = document.createElement('h3');
+      this.heading.innerText = "External Content";
       this.message1 = document.createElement('p');
-      this.message1.innerText = "Here you find content from Twitter that complements this article. You can display it with one click and hide it again.";
+      this.message1.innerText = "Here you'll find additional content from Twitter that complements the article. You can easily view it with a single click and then hide it again.";
       this.message2 = document.createElement('p');
-      this.message2.innerText = "I agree to external content being shown here. This may transmit personal data to third-party platforms.";
-  
+      this.message2.setAttribute('class', 'e3c-fineprint');
+      this.message2.innerText = "I agree to have external content displayed to me. This may result in personal data being shared with third-party platforms.";
+ 
+      // Conditionally add link to privacy policy
+      if (this.getAttribute('policy')) {
+        this.privacyPolicyLink = document.createElement('a');
+        this.privacyPolicyLink.href = this.getAttribute('policy');
+        this.privacyPolicyLink.innerText = 'privacy policy';
+        const learnMoreText = document.createTextNode(' To learn more, please refer to our ');
+     this.message2.appendChild(learnMoreText);
+        this.message2.appendChild(this.privacyPolicyLink);
+        this.message2.appendChild(document.createTextNode("."));
+      }
+ 
+      // Conditionally display the Twitter icon based on the show attribute
+      var add_fontawesome = ""
+      if (this.getAttribute('show') === 'icon') {
+        this.twitterIcon = document.createElement('i');
+        this.twitterIcon.setAttribute('class', 'fab fa-twitter');
+        this.twitterIcon.style.marginRight = '10px';
+        this.heading.prepend(this.twitterIcon);
+        var add_fontawesome = "@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css');"
+      }
+
       // Create the tweet container element
       this.container = document.createElement('div');
       this.container.style.display = 'none';
@@ -35,9 +59,11 @@ class EFrame extends HTMLElement {
       this.eframeContainer.setAttribute('class', 'eframe-container');
 
       // Add the elements to the eframe container element
+      this.eframeContainer.appendChild(this.heading);
       this.eframeContainer.appendChild(this.message1);
       this.switchWrapper.appendChild(this.switch);
-      this.switchWrapper.appendChild(document.createTextNode('Show external content from Twitter'));
+/*       this.switchWrapper.appendChild(document.createTextNode('Show external content from Twitter')); */
+      this.switchWrapper.appendChild(this.switchLabel);
       this.eframeContainer.appendChild(this.switchWrapper);
       this.eframeContainer.appendChild(this.message2);
       this.eframeContainer.appendChild(this.container);
@@ -47,12 +73,13 @@ class EFrame extends HTMLElement {
 
       // Add event listener to the switch
       this.input.addEventListener('change', this.onToggle.bind(this));
-  
+      
       // Create the CSS styles
       var css = `
 
+      ${add_fontawesome}
+
       e-frame {
-        background-color: rgb(196, 196, 196);
         display: inline-block;
         max-width: 600px;
         width: 100%;
@@ -69,8 +96,13 @@ class EFrame extends HTMLElement {
       margin: 10px 0px;
     }
 
+    .e3c-fineprint {
+      font-size: 0.95em;
+    }
+
       .e3c-switch {
         position: relative;
+        margin-right: 5px;
         display: inline-block;
         width: 40px;
         height: 24px;
@@ -163,15 +195,19 @@ class EFrame extends HTMLElement {
           });
     
           this.container.style.display = "block";
+          this.heading.style.display = "none";
           this.message1.style.display = "none";
           this.message2.style.display = "none";
+          this.switchLabel.textContent = 'External content';
         } else {
           // Clear the tweet content
           this.container.innerHTML = '';
           this.container.style.display = "none";
-                 // Show the messages
-                 this.message1.style.display = "block";
-                 this.message2.style.display = "block";
+          // Show the messages
+          this.heading.style.display = "block";
+          this.message1.style.display = "block";
+          this.message2.style.display = "block";
+          this.switchLabel.textContent = 'Show external content from Twitter';
         }
       }
     }
