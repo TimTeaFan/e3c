@@ -99,10 +99,10 @@ class EFrame extends HTMLElement {
   
       e-frame {
         display: block;
-        max-width: 600px;
+        max-width: 550px;
         width: 100%;
         height: 100%;
-        padding: 10px 20px 20px 10px;
+        padding: 10px 20px 10px 20px;
     }
   
     .e3c-fineprint {
