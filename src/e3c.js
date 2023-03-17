@@ -1,5 +1,9 @@
 // Define the custom element
 class EFrame extends HTMLElement {
+
+  // define CSS style and logic
+  static cssAdded = false;
+
     constructor() {
       super();
   
@@ -41,13 +45,12 @@ class EFrame extends HTMLElement {
       }
  
       // Conditionally display the Twitter icon based on the show attribute
-      var add_fontawesome = ""
+
       if (this.getAttribute('show') === 'icon') {
         this.twitterIcon = document.createElement('i');
         this.twitterIcon.setAttribute('class', 'fab fa-twitter');
         this.twitterIcon.style.marginRight = '10px';
         this.heading.prepend(this.twitterIcon);
-        var add_fontawesome = "@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css');"
       }
 
       // Create the tweet container element
@@ -62,7 +65,6 @@ class EFrame extends HTMLElement {
       this.eframeContainer.appendChild(this.heading);
       this.eframeContainer.appendChild(this.message1);
       this.switchWrapper.appendChild(this.switch);
-/*       this.switchWrapper.appendChild(document.createTextNode('Show external content from Twitter')); */
       this.switchWrapper.appendChild(this.switchLabel);
       this.eframeContainer.appendChild(this.switchWrapper);
       this.eframeContainer.appendChild(this.message2);
@@ -73,33 +75,49 @@ class EFrame extends HTMLElement {
 
       // Add event listener to the switch
       this.input.addEventListener('change', this.onToggle.bind(this));
-      
+  
+      // If CSS is not already adde, append it to the document's head
+      if (!EFrame.cssAdded) {
+        EFrame.addCSS();
+        EFrame.cssAdded = true;
+    }
+
+    }
+
+    static addCSS() { 
+      // Check if Font Awesome should be included
+    var add_fontawesome = "";
+    const eframeElement = document.querySelector('e-frame');
+    if (eframeElement && eframeElement.getAttribute('show') === 'icon') {
+      add_fontawesome = "@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css');";
+    }
+
       // Create the CSS styles
       var css = `
-
+  
       ${add_fontawesome}
-
+  
       e-frame {
-        display: inline-block;
+        display: block;
         max-width: 600px;
         width: 100%;
         height: 100%;
         margin-top: 10px;
         margin-bottom: 10px;
     }
-
+  
     .eframe-container {
       padding: 0px 20px;
     }
-
+  
     .e3c-switch-container {
       margin: 10px 0px;
     }
-
+  
     .e3c-fineprint {
       font-size: 0.95em;
     }
-
+  
       .e3c-switch {
         position: relative;
         margin-right: 5px;
@@ -157,7 +175,7 @@ class EFrame extends HTMLElement {
       var style = document.createElement('style');
       style.innerHTML = css;
       document.head.appendChild(style);
-    }
+  }
   
     loadTwitterWidget() {
       if (!window.twttr) {
