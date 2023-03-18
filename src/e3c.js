@@ -236,13 +236,19 @@ class EFrame extends HTMLElement {
 
             // get dimenson of video and assign width and height
             const vid_dim = await fetchVideoDimensions(youtubeId);
-            const vid_width = this.getAttribute('yt-width') ? this.getAttribute('yt-width') : '640px';
-            var vid_height = '390px';
-            
-            // TODO: if yt-height is suppplied, should it still be adjusted? Rethink this whole part
-            if (this.getAttribute('yt-height')) {
+            var vid_width  = this.getAttribute('yt-width')  ? this.getAttribute('yt-width')  : '640px';
+            var vid_height = this.getAttribute('yt-height') ? this.getAttribute('yt-height') : '390px';
+
+            if (!this.getAttribute('yt-height') && this.getAttribute('yt-width')) {
+              console.log('here');
               const num_height = parseInt(vid_width, 10) / vid_dim
               vid_height = num_height.toString() + "px";
+            };
+
+            if (this.getAttribute('yt-height') && !this.getAttribute('yt-width')) {
+              console.log('here2');
+              const num_width = parseInt(vid_height, 10) * vid_dim
+              vid_width = num_width.toString() + "px";
             };
             
             // Load the YouTube iframe
