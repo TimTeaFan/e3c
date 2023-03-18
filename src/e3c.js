@@ -11,6 +11,11 @@ class EFrame extends HTMLElement {
       const src = this.getAttribute('src');
       this.sourceType = src.includes('twitter') ? 'twitter' : (src.includes('youtube') ? 'youtube' : '');
 
+      // Set the default max-width based on the source type
+      /* if(this.getAttribute('max-width'))
+      const defaultMaxWidth = this.sourceType === 'twitter' ? '550px' : '560px';
+      this.style.maxWidth = defaultMaxWidth;
+ */
       // Create the switch element
       this.switch = document.createElement('label');
       this.switch.setAttribute('class', 'e3c-switch');
@@ -109,7 +114,6 @@ class EFrame extends HTMLElement {
   
       e-frame {
         display: block;
-        max-width: 550px;
         width: 100%;
         height: 100%;
         padding: 10px 20px 10px 20px;
@@ -127,6 +131,9 @@ class EFrame extends HTMLElement {
         height: 24px;
       }
   
+      .e3c-switch-container {
+        margin-bottom: 10px;
+      }
       .e3c-switch input {
         display: none;
       }
@@ -197,7 +204,7 @@ class EFrame extends HTMLElement {
         }
       }
     
-      onToggle() {
+      async onToggle() {
         if (this.input.checked) {
           if (this.sourceType === 'twitter') {
             // Load the Twitter widgets.js script
@@ -221,11 +228,27 @@ class EFrame extends HTMLElement {
             this.switchLabel.textContent = 'External content';
     
           } else if (this.sourceType === 'youtube') {
+            // Create YouTube iframe
+            // Get Youtube ID
+            // adpated from this SO answer: https://stackoverflow.com/a/51870158/9349302
+            const regpat = /(https?:\/\/)?(((m|www)\.)?(youtube(-nocookie)?|youtube.googleapis)\.com.*(v\/|v=|vi=|vi\/|e\/|embed\/|user\/.*\/u\/\d+\/)|youtu\.be\/)([_0-9a-z-]+)/i;
+            const youtubeId = this.getAttribute('src').match(regpat)[8];
+
+            // get dimenson of video and assign width and height
+            const vid_dim = await fetchVideoDimensions(youtubeId);
+            const vid_width = this.getAttribute('yt-width') ? this.getAttribute('yt-width') : '640px';
+            var vid_height = '390px';
+            
+            // TODO: if yt-height is suppplied, should it still be adjusted? Rethink this whole part
+            if (this.getAttribute('yt-height')) {
+              const num_height = parseInt(vid_width, 10) / vid_dim
+              vid_height = num_height.toString() + "px";
+            };
+            
             // Load the YouTube iframe
-            const youtubeId = this.getAttribute('src').split('/').pop();
             const iframe = document.createElement('iframe');
-            iframe.width = "560";
-            iframe.height = "315";
+            iframe.width = vid_width;
+            iframe.height =  vid_height;
             iframe.src = `https://www.youtube.com/embed/${youtubeId}`;
             iframe.title = "YouTube video player";
             iframe.frameBorder = "0";
@@ -251,6 +274,22 @@ class EFrame extends HTMLElement {
           this.message2.style.display = "block";
           this.switchLabel.textContent = this.sourceType === 'twitter' ? 'Show external content from Twitter' : 'Show external content from YouTube';
         }
+      }
+    }
+
+    //
+    async function fetchVideoDimensions(videoUrlId) {
+      const oembedUrl = `https://www.youtube.com/oembed?url=http%3A//www.youtube.com/watch%3Fv%3D${videoUrlId}&format=json`;
+      
+      try {
+        const response = await fetch(oembedUrl);
+        const data = await response.json();
+        const { width, height } = data;
+        const out = width / height;
+        return out;
+      } catch (error) {
+        console.error("Error fetching video dimensions:", error);
+        return null;
       }
     }
 
