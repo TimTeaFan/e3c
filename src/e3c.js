@@ -9,7 +9,11 @@ class EFrame extends HTMLElement {
   
       // Get the source type (Twitter or YouTube)
       const src = this.getAttribute('src');
-      this.sourceType = src.includes('twitter') ? 'twitter' : (src.includes('youtube') ? 'youtube' : '');
+      this.sourceType = this.getAttribute('type')
+
+      if (!this.sourceType) {
+        this.sourceType = checkUrlType(src)
+      }
 
       // Set the default max-width based on the source type
       /* if(this.getAttribute('max-width'))
@@ -61,6 +65,7 @@ class EFrame extends HTMLElement {
       // Conditionally display the Twitter icon based on the show attribute
 
       if (config.show === 'icon') {
+        
         const iconClass = this.sourceType === 'twitter' ? 'fab fa-twitter' : 'fab fa-youtube';
         this.icon = document.createElement('i');
         this.icon.setAttribute('class', iconClass);
@@ -309,7 +314,26 @@ class EFrame extends HTMLElement {
         policy: policyMetaTag ? policyMetaTag.content : null
       };
     }
+
+    // function to check if an URL links to youtube
+    function isYouTubeLink(url) {
+      const pattern = /^(?:https?:\/\/)?(?:www\.)?(?:m\.)?(?:youtu\.be\/|youtube(?:-nocookie)?\.com)/;
+      return pattern.test(url);
+    }
     
+    // function to check if an URL links to Twitter
+    function isTwitterLink(url) {
+      const pattern = /^(?:https?:\/\/)?(?:www\.)?twitter\.com/;
+      return pattern.test(url);
+    }
+
+    function checkUrlType(url) {
+      if(isTwitterLink(url)) {
+        return 'twitter'
+      } else if (isYouTubeLink(url)) {
+        return 'youtube'
+      }
+    }
     
     // Define the custom element tag
     customElements.define('e-frame', EFrame);
