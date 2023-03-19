@@ -7,6 +7,8 @@ class EFrame extends HTMLElement {
     constructor(config = readMetaConfig()) {
       super();
   
+      this.config = config;
+
       // Get the source type (Twitter or YouTube)
       const src = this.getAttribute('src');
       this.sourceType = this.getAttribute('type')
@@ -17,6 +19,13 @@ class EFrame extends HTMLElement {
       }
 
       this.sourceType = this.sourceType.toLowerCase()
+      switch(this.sourceType) {
+        case "twitter":
+          this.sourceTypeLabel = "Twitter";
+          break;
+        case "youtube":
+          this.sourceTypeLabel = "YouTube";
+      }
 
       // Set the default max-width based on the source type
       var defaultMaxWidth = "550px"
@@ -44,21 +53,16 @@ class EFrame extends HTMLElement {
       this.switchWrapper.setAttribute('class', 'e3c-switch-container');
       this.switchWrapper.style.display = 'flex';
       this.switchWrapper.style.alignItems = 'center';
-      this.switchLabel = document.createTextNode('Show external content from Twitter');
-     
-      // Change the switch label based on the source type
-      if (this.sourceType === 'youtube') {
-        this.switchLabel.textContent = 'Show external content from YouTube';
-      }
+      this.switchLabel = document.createTextNode(config.label + this.sourceTypeLabel);
             
       // Create the message elements
       this.heading = document.createElement('h3');
-      this.heading.innerText = "External Content";
+      this.heading.innerText = config.heading;
       this.message1 = document.createElement('p');
-      this.message1.innerText = "Here you'll find additional content from Twitter that complements the article. You can easily view it with a single click and then hide it again.";
+      this.message1.innerText = config.intro;
       this.message2 = document.createElement('p');
       this.message2.setAttribute('class', 'e3c-fineprint');
-      this.message2.innerText = "I agree to have external content displayed to me. This may result in personal data being shared with third-party platforms.";
+      this.message2.innerText = config.consent;
  
       // Conditionally add link to privacy policy
       if (config.policy) {
@@ -75,7 +79,7 @@ class EFrame extends HTMLElement {
 
       if (config.show === 'icon') {
         
-        const iconClass = this.sourceType === 'twitter' ? 'fab fa-twitter' : 'fab fa-youtube';
+        const iconClass = `fab fa-${this.sourceType}`;
         this.icon = document.createElement('i');
         this.icon.setAttribute('class', iconClass);
         this.icon.style.marginRight = '10px';
@@ -218,28 +222,53 @@ class EFrame extends HTMLElement {
         }
       }
     
+      loadTweetContent(instance) {
+        instance.loadTwitterWidget();
+  
+        // Load the tweet content
+        var tweetEmbed = document.createElement('blockquote');
+        tweetEmbed.setAttribute('class', 'twitter-tweet');
+        tweetEmbed.innerHTML = '<a href="' + instance.getAttribute('src') + '"></a>';
+  
+        instance.container.appendChild(tweetEmbed);
+  
+        window.twttr.ready((twttr) => {
+          twttr.widgets.load(instance.container);
+        });
+    }
+  
+      // Function to hide text and display container
+      hideText(instance) {
+        instance.container.style.display = "block";
+        instance.heading.style.display = "none";
+        instance.message1.style.display = "none";
+        instance.message2.style.display = "none";
+        instance.switchWrapper.setAttribute("old-label", instance.config.label + this.sourceTypeLabel);
+        instance.switchLabel.textContent = "External content";
+      }
+  
+      // Function to show text 
+      showText(instance) {
+        // Clear the content
+        instance.container.innerHTML = '';
+        instance.container.style.display = "none";
+         
+        // Show the messages
+        instance.heading.style.display = "block";
+        instance.message1.style.display = "block";
+        instance.message2.style.display = "block";
+        this.switchLabel.textContent = instance.switchWrapper.getAttribute("old-label") 
+      }
+    
       async onToggle() {
         if (this.input.checked) {
           if (this.sourceType === 'twitter') {
             // Load the Twitter widgets.js script
             this.loadTwitterWidget();
-    
-            // Load the tweet content
-            var tweetEmbed = document.createElement('blockquote');
-            tweetEmbed.setAttribute('class', 'twitter-tweet');
-            tweetEmbed.innerHTML = '<a href="' + this.getAttribute('src') + '"></a>';
-    
-            this.container.appendChild(tweetEmbed);
-    
-            window.twttr.ready((twttr) => {
-              twttr.widgets.load(this.container);
-            });
-    
-            this.container.style.display = "block";
-            this.heading.style.display = "none";
-            this.message1.style.display = "none";
-            this.message2.style.display = "none";
-            this.switchLabel.textContent = 'External content';
+            // Load Twitter content
+            this.loadTweetContent(this)
+            // Hide text and show container    
+            this.hideText(this)
     
           } else if (this.sourceType === 'youtube') {
             // Create YouTube iframe
@@ -277,24 +306,14 @@ class EFrame extends HTMLElement {
     
             this.container.appendChild(iframe);
     
-            this.container.style.display = "block";
-            this.heading.style.display = "none";
-            this.message1.style.display = "none";
-            this.message2.style.display = "none";
-            this.switchLabel.textContent = 'External content';
+            this.hideText(this)
+
           }
         } else {
-          // Clear the content
-          this.container.innerHTML = '';
-          this.container.style.display = "none";
-    
-          // Show the messages
-          this.heading.style.display = "block";
-          this.message1.style.display = "block";
-          this.message2.style.display = "block";
-          this.switchLabel.textContent = this.sourceType === 'twitter' ? 'Show external content from Twitter' : 'Show external content from YouTube';
+          this.showText(this)
         }
       }
+
     }
 
     //
@@ -314,13 +333,21 @@ class EFrame extends HTMLElement {
     }
 
     // Function to readin the MetaConfig data
-    function readMetaConfig() {
+    function readMetaConfig(instance) {
       const showMetaTag = document.querySelector('meta[name="eframe-show"]');
       const policyMetaTag = document.querySelector('meta[name="eframe-policy"]');
-    
+      const headingMetaTag = document.querySelector('meta[name="eframe-heading"]');
+      const introMetaTag = document.querySelector('meta[name="eframe-intro"]');
+      const labelMetaTag = document.querySelector('meta[name="eframe-label"]');
+      const consentMetaTag = document.querySelector('meta[name="eframe-consent"]');
+
       return {
         show: showMetaTag ? showMetaTag.content : 'icon',
-        policy: policyMetaTag ? policyMetaTag.content : null
+        policy: policyMetaTag ? policyMetaTag.content : null,
+        heading: headingMetaTag ? headingMetaTag.content : 'External Content',
+        intro: introMetaTag ? introMetaTag.content : "Here you'll find additional content from Twitter that complements the article. You can easily view it with a single click and then hide it again.",
+        label: labelMetaTag ? labelMetaTag.content : "Show external content from ",
+        consent: consentMetaTag ? consentMetaTag.content : 'I agree to have external content displayed to me. This may result in personal data being shared with third-party platforms.'
       };
     }
 
