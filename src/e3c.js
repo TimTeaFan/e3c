@@ -11,15 +11,24 @@ class EFrame extends HTMLElement {
       const src = this.getAttribute('src');
       this.sourceType = this.getAttribute('type')
 
+      // if type is not specified try automatical detection
       if (!this.sourceType) {
         this.sourceType = checkUrlType(src)
       }
 
+      this.sourceType = this.sourceType.toLowerCase()
+
       // Set the default max-width based on the source type
-      /* if(this.getAttribute('max-width'))
-      const defaultMaxWidth = this.sourceType === 'twitter' ? '550px' : '560px';
-      this.style.maxWidth = defaultMaxWidth;
- */
+      var defaultMaxWidth = "550px"
+      if (this.sourceType === 'youtube') {
+        defaultMaxWidth = "550px"
+      }
+
+      // Check if user has supplied a max-width attribute, otherwise use default
+      const userMaxWidth = this.getAttribute('max-width');
+      const maxWidth = userMaxWidth ? userMaxWidth : defaultMaxWidth;
+      this.style.maxWidth = maxWidth;
+
       // Create the switch element
       this.switch = document.createElement('label');
       this.switch.setAttribute('class', 'e3c-switch');
@@ -108,7 +117,7 @@ class EFrame extends HTMLElement {
 
       // Check if the font-awesome should be added
       var add_fontawesome = "";
-      if (showAttribute === 'icon')   {
+      if (showAttribute === 'icon') {
         add_fontawesome = "@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css');"
       }
 
@@ -122,7 +131,7 @@ class EFrame extends HTMLElement {
         width: 100%;
         height: 100%;
         padding: 10px 20px 10px 20px;
-    }
+     }
   
     .e3c-fineprint {
       font-size: 0.95em;
