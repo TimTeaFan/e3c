@@ -236,6 +236,43 @@ class EFrame extends HTMLElement {
           twttr.widgets.load(instance.container);
         });
     }
+
+    // Create YouTube iframe
+    async loadYoutubeVideo(instance) {
+      // Get Youtube ID
+      // adpated from this SO answer: https://stackoverflow.com/a/51870158/9349302
+      const regpat = /(https?:\/\/)?(((m|www)\.)?(youtube(-nocookie)?|youtube.googleapis)\.com.*(v\/|v=|vi=|vi\/|e\/|embed\/|user\/.*\/u\/\d+\/)|youtu\.be\/)([_0-9a-z-]+)/i;
+      const youtubeId = instance.getAttribute('src').match(regpat)[8];
+
+      // get dimenson of video and assign width and height
+      const vid_dim = await fetchVideoDimensions(youtubeId);
+      var vid_width  = instance.getAttribute('yt-width')  ? instance.getAttribute('yt-width')  : '640px';
+      var vid_height = instance.getAttribute('yt-height') ? instance.getAttribute('yt-height') : '390px';
+
+      if (!instance.getAttribute('yt-height') && instance.getAttribute('yt-width')) {
+        console.log('here');
+        const num_height = parseInt(vid_width, 10) / vid_dim
+        vid_height = num_height.toString() + "px";
+      };
+
+      if (instance.getAttribute('yt-height') && !instance.getAttribute('yt-width')) {
+        console.log('here2');
+        const num_width = parseInt(vid_height, 10) * vid_dim
+        vid_width = num_width.toString() + "px";
+      };
+           
+      // Load the YouTube iframe
+      const iframe = document.createElement('iframe');
+      iframe.width = vid_width;
+      iframe.height =  vid_height;
+      iframe.src = `https://www.youtube.com/embed/${youtubeId}`;
+      iframe.title = "YouTube video player";
+      iframe.style.border = "0px";
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.allowFullscreen = true;
+      
+      instance.container.appendChild(iframe);
+  }
   
       // Function to hide text and display container
       hideText(instance) {
@@ -261,7 +298,9 @@ class EFrame extends HTMLElement {
       }
     
       async onToggle() {
+        
         if (this.input.checked) {
+
           if (this.sourceType === 'twitter') {
             // Load the Twitter widgets.js script
             this.loadTwitterWidget();
@@ -271,43 +310,10 @@ class EFrame extends HTMLElement {
             this.hideText(this)
     
           } else if (this.sourceType === 'youtube') {
-            // Create YouTube iframe
-            // Get Youtube ID
-            // adpated from this SO answer: https://stackoverflow.com/a/51870158/9349302
-            const regpat = /(https?:\/\/)?(((m|www)\.)?(youtube(-nocookie)?|youtube.googleapis)\.com.*(v\/|v=|vi=|vi\/|e\/|embed\/|user\/.*\/u\/\d+\/)|youtu\.be\/)([_0-9a-z-]+)/i;
-            const youtubeId = this.getAttribute('src').match(regpat)[8];
-
-            // get dimenson of video and assign width and height
-            const vid_dim = await fetchVideoDimensions(youtubeId);
-            var vid_width  = this.getAttribute('yt-width')  ? this.getAttribute('yt-width')  : '640px';
-            var vid_height = this.getAttribute('yt-height') ? this.getAttribute('yt-height') : '390px';
-
-            if (!this.getAttribute('yt-height') && this.getAttribute('yt-width')) {
-              console.log('here');
-              const num_height = parseInt(vid_width, 10) / vid_dim
-              vid_height = num_height.toString() + "px";
-            };
-
-            if (this.getAttribute('yt-height') && !this.getAttribute('yt-width')) {
-              console.log('here2');
-              const num_width = parseInt(vid_height, 10) * vid_dim
-              vid_width = num_width.toString() + "px";
-            };
-            
-            // Load the YouTube iframe
-            const iframe = document.createElement('iframe');
-            iframe.width = vid_width;
-            iframe.height =  vid_height;
-            iframe.src = `https://www.youtube.com/embed/${youtubeId}`;
-            iframe.title = "YouTube video player";
-            iframe.frameBorder = "0";
-            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-            iframe.allowFullscreen = true;
-    
-            this.container.appendChild(iframe);
-    
+            // Create ifreame of Youtube Video
+            this.loadYoutubeVideo(this)
+            // Hide text and show container  
             this.hideText(this)
-
           }
         } else {
           this.showText(this)
