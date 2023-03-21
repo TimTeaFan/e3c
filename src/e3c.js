@@ -65,7 +65,7 @@ class EFrame extends HTMLElement {
       this.heading = document.createElement('h3');
       this.heading.innerText = config.heading;
       this.message1 = document.createElement('p');
-      this.message1.innerText = config.intro;
+      this.message1.innerText = config.intro.replace('{sourceTypeLabel}', this.sourceTypeLabel);
       this.message2 = document.createElement('p');
       this.message2.setAttribute('class', 'e3c-fineprint');
       this.message2.innerText = config.consent;
@@ -417,7 +417,7 @@ class EFrame extends HTMLElement {
         show: showMetaTag ? showMetaTag.content : 'icon',
         policy: policyMetaTag ? policyMetaTag.content : null,
         heading: headingMetaTag ? headingMetaTag.content : 'External Content',
-        intro: introMetaTag ? introMetaTag.content : "Here you'll find additional content from Twitter that complements the article. You can easily view it with a single click and then hide it again.",
+        intro: introMetaTag ? introMetaTag.content : "Here you'll find additional content from {sourceTypeLabel} that complements the article. You can easily view it with a single click and then hide it again.",
         label: labelMetaTag ? labelMetaTag.content : "Show external content from ",
         consent: consentMetaTag ? consentMetaTag.content : 'I agree to have external content displayed to me. This may result in personal data being shared with third-party platforms.'
       };
