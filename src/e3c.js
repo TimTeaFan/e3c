@@ -25,11 +25,17 @@ class EFrame extends HTMLElement {
           break;
         case "youtube":
           this.sourceTypeLabel = "YouTube";
+          break;
+        case "vimeo":
+          this.sourceTypeLabel = "Vimeo";
+          break;
+        case "mastodon":
+          this.sourceTypeLabel = "Mastodon";
       }
 
       // Set the default max-width based on the source type
       var defaultMaxWidth = "550px"
-      if (this.sourceType === 'youtube') {
+      if (this.sourceType === 'youtube' || this.sourceType === 'vimeo') {
         defaultMaxWidth = "550px"
       }
 
@@ -212,6 +218,7 @@ class EFrame extends HTMLElement {
           js = d.createElement(s);
           js.id = id;
           js.src = "https://platform.twitter.com/widgets.js";
+          js.setAttribute('async', 'async');
         fjs.parentNode.insertBefore(js, fjs);
             t._e = [];
             t.ready = function(f) {
@@ -221,7 +228,7 @@ class EFrame extends HTMLElement {
           }(document, "script", "twitter-wjs"));
         }
       }
-    
+   
       loadTweetContent(instance) {
         instance.loadTwitterWidget();
   
@@ -250,13 +257,12 @@ class EFrame extends HTMLElement {
       var vid_height = instance.getAttribute('yt-height') ? instance.getAttribute('yt-height') : '390px';
 
       if (!instance.getAttribute('yt-height') && instance.getAttribute('yt-width')) {
-        console.log('here');
         const num_height = parseInt(vid_width, 10) / vid_dim
         vid_height = num_height.toString() + "px";
       };
 
       if (instance.getAttribute('yt-height') && !instance.getAttribute('yt-width')) {
-        console.log('here2');
+
         const num_width = parseInt(vid_height, 10) * vid_dim
         vid_width = num_width.toString() + "px";
       };
@@ -272,6 +278,64 @@ class EFrame extends HTMLElement {
       iframe.allowFullscreen = true;
       
       instance.container.appendChild(iframe);
+  }
+
+  loadVimeoVideo(instance) {
+    
+    // Get Vimeo ID
+    const regex = /\d+$/;
+    const vimeoId = instance.getAttribute('src').match(regex);
+
+    // Load the YouTube iframe
+    const outer_div = document.createElement('div');
+    outer_div.style = "padding:56.25% 0 0 0;position:relative;"
+
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://player.vimeo.com/video/${vimeoId}?h=ca92ea39ae&color=ff9933&portrait=0`;
+    iframe.title = "Vimeo video player";
+    iframe.style = "position:absolute;top:0;left:0;width:100%;height:100%;border:0px";
+    iframe.allow = "autoplay; fullscreen; picture-in-picture";
+    iframe.allowFullscreen = true;
+    
+    outer_div.appendChild(iframe);
+
+    const script = document.createElement('script');
+
+    // set the src attribute of the script
+    script.setAttribute('src', 'https://player.vimeo.com/api/player.js');
+
+    // append the script element to the div element
+    outer_div.appendChild(script);
+
+    instance.container.appendChild(outer_div);
+}
+
+  loadTootContent(instance) {
+    var tootLink = instance.getAttribute('src');
+    tootLink = tootLink.endsWith('/') ? tootLink.slice(0, -1) : tootLink;
+
+    // Get Mastodon ID
+    const regex = /\d+$/;
+    const tootId = instance.getAttribute('src').match(regex);
+    
+    // Create the Mastodon iframe   
+    const iframe = document.createElement('iframe');
+    iframe.src =  `${tootLink}/embed`;
+    iframe.setAttribute('class', "mastodon-embed");
+    iframe.style = "max-width: 100%; border: 0";
+    iframe.width = "550"; // "400"
+    iframe.setAttribute('allowFullscreen', "allowfullscreen");
+      
+    // create fosstodon script
+    const script = document.createElement('script');
+    script.setAttribute('src', 'https://fosstodon.org/embed.js');
+    script.setAttribute('async', 'async');
+
+    // append iframe and script element to container
+    instance.container.appendChild(iframe);
+    instance.container.appendChild(script);
+
+    
   }
   
       // Function to hide text and display container
@@ -298,25 +362,27 @@ class EFrame extends HTMLElement {
       }
     
       async onToggle() {
-        
+
         if (this.input.checked) {
 
           if (this.sourceType === 'twitter') {
-            // Load the Twitter widgets.js script
             this.loadTwitterWidget();
-            // Load Twitter content
-            this.loadTweetContent(this)
-            // Hide text and show container    
-            this.hideText(this)
-    
+            this.loadTweetContent(this);
+            this.hideText(this);
           } else if (this.sourceType === 'youtube') {
-            // Create ifreame of Youtube Video
-            this.loadYoutubeVideo(this)
-            // Hide text and show container  
-            this.hideText(this)
+            this.loadYoutubeVideo(this);
+            this.hideText(this);
+          }  else if (this.sourceType === 'vimeo') {
+            this.loadVimeoVideo(this);
+            this.hideText(this);
+          } else if (this.sourceType === 'mastodon') {
+            console.log("we are here")
+            // this.loadFosstodonEmbed();
+            this.loadTootContent(this);
+            this.hideText(this);
           }
         } else {
-          this.showText(this)
+          this.showText(this);
         }
       }
 
@@ -339,7 +405,7 @@ class EFrame extends HTMLElement {
     }
 
     // Function to readin the MetaConfig data
-    function readMetaConfig(instance) {
+    function readMetaConfig() {
       const showMetaTag = document.querySelector('meta[name="eframe-show"]');
       const policyMetaTag = document.querySelector('meta[name="eframe-policy"]');
       const headingMetaTag = document.querySelector('meta[name="eframe-heading"]');
@@ -369,11 +435,20 @@ class EFrame extends HTMLElement {
       return pattern.test(url);
     }
 
+    function isVimeoLink(url) {
+      const pattern = /^https?:\/\/[^\/]*vimeo[^\/]*/;
+      return pattern.test(url);
+    }
+
     function checkUrlType(url) {
       if(isTwitterLink(url)) {
         return 'twitter'
       } else if (isYouTubeLink(url)) {
         return 'youtube'
+      } else if (isVimeoLink(url)) {
+        return 'vimeo'
+      } else {
+        return 'mastodon'
       }
     }
     
